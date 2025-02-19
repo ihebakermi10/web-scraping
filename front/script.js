@@ -1,82 +1,103 @@
 document.getElementById('myForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Réinitialiser les messages d'erreur
+    // Réinitialiser les messages d'erreur et de statut
     clearErrors();
-
+    const statusMessage = document.getElementById('statusMessage');
+    statusMessage.textContent = 'Veuillez patienter...';
+  
     // Récupération des valeurs
     const email = document.getElementById('email').value;
     const phone = document.getElementById('phone').value;
     const url = document.getElementById('url').value;
     const prompt = document.getElementById('prompt').value;
-
-    // Validation
+  
+    // Validation simple
     let isValid = true;
-
     if (!validateEmail(email)) {
-        showError('emailError', 'Veuillez entrer un email valide');
-        isValid = false;
+      showError('emailError', 'Veuillez entrer un email valide');
+      isValid = false;
     }
-
     if (!validatePhone(phone)) {
-        showError('phoneError', 'Le numéro doit contenir 10 chiffres');
-        isValid = false;
+      showError('phoneError', 'Le numéro doit contenir 10 chiffres');
+      isValid = false;
     }
-
     if (!validateUrl(url)) {
-        showError('urlError', 'Veuillez entrer une URL valide');
-        isValid = false;
+      showError('urlError', 'Veuillez entrer une URL valide');
+      isValid = false;
     }
-
     if (prompt.trim() === '') {
-        showError('promptError', 'Veuillez remplir ce champ');
-        isValid = false;
+      showError('promptError', 'Veuillez remplir ce champ');
+      isValid = false;
     }
-
+    
     if (isValid) {
-        // Envoi des données (à adapter selon vos besoins)
-        const formData = {
-            email,
-            phone,
-            url,
-            prompt
-        };
-        
-        console.log('Données soumises:', formData);
+      const formData = {
+        email: email,
+        numero: phone,
+        url: url,
+        prompte: prompt
+      };
+  
+      fetch("http://127.0.0.1:8080/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur HTTP ' + response.status + ' : ' + response.statusText);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Réponse du backend:', data);
+        statusMessage.textContent = 'Formulaire soumis avec succès!';
         alert('Formulaire soumis avec succès !');
-        this.reset();
+        document.getElementById('myForm').reset();
+      })
+      .catch(error => {
+        console.error('Erreur:', error);
+        statusMessage.textContent = 'Une erreur est survenue lors de la soumission du formulaire.';
+        alert('Erreur : ' + error.message);
+      });
+    } else {
+      statusMessage.textContent = '';
     }
-});
-
-function validateEmail(email) {
+  });
+  
+  function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
-}
-
-function validatePhone(phone) {
+  }
+  
+  function validatePhone(phone) {
     const re = /^\d{10}$/;
     return re.test(phone);
-}
-
-function validateUrl(url) {
+  }
+  
+  function validateUrl(url) {
     try {
-        new URL(url);
-        return true;
+      new URL(url);
+      return true;
     } catch {
-        return false;
+      return false;
     }
-}
-
-function showError(elementId, message) {
+  }
+  
+  function showError(elementId, message) {
     const errorElement = document.getElementById(elementId);
     errorElement.textContent = message;
     errorElement.style.display = 'block';
-}
-
-function clearErrors() {
+  }
+  
+  function clearErrors() {
     const errors = document.getElementsByClassName('error-message');
     for (let error of errors) {
-        error.textContent = '';
-        error.style.display = 'none';
+      error.textContent = '';
+      error.style.display = 'none';
     }
-}
+  }
+  

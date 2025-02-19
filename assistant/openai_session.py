@@ -1,5 +1,5 @@
 import json
-from config import SYSTEM_MESSAGE, VOICE
+from assistant.config import SYSTEM_MESSAGE, VOICE
 
 async def send_initial_conversation_item(openai_ws):
     initial_conversation_item = {

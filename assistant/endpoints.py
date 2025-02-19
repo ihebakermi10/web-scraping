@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, WebSocket
 from fastapi.responses import HTMLResponse, JSONResponse
 from twilio.twiml.voice_response import VoiceResponse, Connect
-from twilio_handler import handle_media_stream
+from assistant.twilio_handler import handle_media_stream
 
 router = APIRouter()
 
