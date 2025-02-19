@@ -3,7 +3,7 @@ import json
 from urllib.parse import urlparse
 from scraping import scrape_entire_website
 from genai_client import get_genai_response
-from db_storage import store_genai_result
+from storage import store_genai_result
 
 def main():
     start_url = input("Entrez l'URL de votre site : ").strip()
