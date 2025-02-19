@@ -6,6 +6,10 @@ from genai_client import get_genai_response
 from storage import store_genai_result
 
 def main():
+    # je veux ici faire entre les paramtre de 
+    # email et 
+    # numero et 
+    # url web site 
     start_url = input("Entrez l'URL de votre site : ").strip()
     if not start_url:
         print("Aucune URL fournie. Fin du programme.")

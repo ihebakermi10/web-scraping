@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
-from endpoints import router
-from config import PORT
+from assistant.endpoints import router
+from assistant.config import PORT
 
 app = FastAPI()
 app.include_router(router)

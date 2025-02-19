@@ -3,7 +3,6 @@ import os
 from pymongo import MongoClient
 
 def test_db():
-    # Récupération des variables d'environnement
     mongo_uri = os.getenv("MONGO_URI")
     db_name = os.getenv("DB_NAME")
     collection_name = os.getenv("COLLECTION_NAME")
@@ -13,13 +12,11 @@ def test_db():
         return
 
     try:
-        # Connexion à la base de données MongoDB
         client = MongoClient(mongo_uri)
         db = client["nehos"]
         collection = db["client"]
         print(f"Connecté à la DB '{db_name}' et à la collection '{collection_name}'.")
 
-        # Insertion d'un document de test
         test_doc = {
             "test_field": "test_value",
             "number": 42

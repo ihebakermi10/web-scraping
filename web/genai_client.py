@@ -3,8 +3,11 @@ import json
 from typing import Any, Dict
 from google import genai
 
+
+
+GOOGLE_API_KEY = "AIzaSyBs_CEsN0b8RnD9Wx6z5qvf_Jl0Kz3NGXk"
+
 def get_genai_response(content: str) -> Dict:
-    GOOGLE_API_KEY = "AIzaSyBs_CEsN0b8RnD9Wx6z5qvf_Jl0Kz3NGXk"
     client = genai.Client(api_key=GOOGLE_API_KEY, http_options={'api_version': 'v1alpha'})
     
     prompt = f"""

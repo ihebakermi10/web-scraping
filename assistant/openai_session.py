@@ -2,7 +2,6 @@ import json
 from config import SYSTEM_MESSAGE, VOICE
 
 async def send_initial_conversation_item(openai_ws):
-    """Send initial conversation item if AI talks first."""
     initial_conversation_item = {
         "type": "conversation.item.create",
         "item": {
@@ -11,7 +10,7 @@ async def send_initial_conversation_item(openai_ws):
             "content": [
                 {
                     "type": "input_text",
-                    "text": "Salut ,presentez vous svp en max 5 mots ! "
+                    "text": "Salut , presentez vous svp ! "
                 }
             ]
         }
@@ -20,7 +19,6 @@ async def send_initial_conversation_item(openai_ws):
     await openai_ws.send(json.dumps({"type": "response.create"}))
 
 async def initialize_session(openai_ws):
-    """Control initial session with OpenAI."""
     session_update = {
         "type": "session.update",
         "session": {
@@ -30,7 +28,7 @@ async def initialize_session(openai_ws):
             "voice": VOICE,
             "instructions": SYSTEM_MESSAGE,
             "modalities": ["text", "audio"],
-            "temperature": 0.6,
+            "temperature": 1,
         }
     }
     print('Sending session update:', json.dumps(session_update))
