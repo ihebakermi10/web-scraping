@@ -1,18 +1,15 @@
 document.getElementById('myForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Réinitialiser les messages d'erreur et de statut
     clearErrors();
     const statusMessage = document.getElementById('statusMessage');
     statusMessage.textContent = 'Veuillez patienter...';
   
-    // Récupération des valeurs
     const email = document.getElementById('email').value;
     const phone = document.getElementById('phone').value;
     const url = document.getElementById('url').value;
     const prompt = document.getElementById('prompt').value;
   
-    // Validation simple
     let isValid = true;
     if (!validateEmail(email)) {
       showError('emailError', 'Veuillez entrer un email valide');
@@ -26,17 +23,17 @@ document.getElementById('myForm').addEventListener('submit', function(e) {
       showError('urlError', 'Veuillez entrer une URL valide');
       isValid = false;
     }
-    if (prompt.trim() === '') {
-      showError('promptError', 'Veuillez remplir ce champ');
-      isValid = false;
-    }
+   // if (prompt.trim() === '') {
+      //showError('promptError', 'Veuillez remplir ce champ');
+    //  isValid = false;
+   // }
     
     if (isValid) {
       const formData = {
         email: email,
         numero: phone,
         url: url,
-        prompte: prompt
+       // prompte: prompt
       };
   
       fetch("http://127.0.0.1:8080/submit", {

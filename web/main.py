@@ -8,30 +8,24 @@ from .storage import store_genai_result
 
 app = FastAPI()
 
-# Autoriser les requêtes CORS depuis le front-end (exemple : http://localhost:8001)
-origins = [
-    "http://localhost:8001",
-    "http://127.0.0.1:8001"
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 class InputData(BaseModel):
-    email: EmailStr
-    numero: int      # numéro de téléphone simplifié en entier
-    url: HttpUrl
+    email: str
+    numero: int      
+    url: str
     prompte: str
 
 @app.post("/submit")
 async def submit_form(data: InputData):
     try:
-        # Scraping du site web
         extracted_data = scrape_entire_website(data.url)
         all_text = "\n".join(extracted_data.values())
     except Exception as e:
@@ -39,7 +33,6 @@ async def submit_form(data: InputData):
         raise HTTPException(status_code=500, detail="Erreur lors du scraping: " + str(e))
     
     try:
-        # Appel à GenAI
         content_result = get_genai_response(all_text)
     except Exception as e:
         print("Erreur lors de l'appel à GenAI:", e)
@@ -49,12 +42,11 @@ async def submit_form(data: InputData):
         "url": data.url,
         "email": data.email,
         "numero": data.numero,
-        "prompte": data.prompte,
+    #    "prompte": data.prompte, je veux ajouter icii  un script qui va gere redige  une  prompte d assissantce vocal qui respoosabe de reserver et donne  des infome comme dans  genai_client.py mais un autre ficher qui responsable de gere
         "content": content_result,
     }
     
     try:
-        # Insertion dans la base de données
         store_genai_result(document)
     except Exception as e:
         print("Erreur lors de l'insertion dans la DB:", e)

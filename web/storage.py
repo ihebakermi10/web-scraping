@@ -1,4 +1,3 @@
-# web/storage.py
 import os
 from pymongo import MongoClient
 

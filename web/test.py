@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 from pymongo import MongoClient
 
@@ -24,14 +23,10 @@ def test_db():
         insert_result = collection.insert_one(test_doc)
         print(f"Document inséré avec l'id : {insert_result.inserted_id}")
 
-        # Récupération du document inséré
         retrieved_doc = collection.find_one({"_id": insert_result.inserted_id})
         print("Document récupéré :")
         print(retrieved_doc)
 
-        # Suppression du document de test
-         #delete_result = collection.delete_one({"_id": insert_result.inserted_id})
-        #print(f"Documents supprimés : {delete_result.deleted_count}")
 
         print("Test de la base de données terminé avec succès.")
 
