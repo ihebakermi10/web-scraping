@@ -42,7 +42,7 @@ async def submit_form(data: InputData):
         "url": data.url,
         "email": data.email,
         "numero": data.numero,
-    #    "prompte": data.prompte, je veux ajouter icii  un script qui va gere redige  une  prompte d assissantce vocal qui respoosabe de reserver et donne  des infome comme dans  genai_client.py mais un autre ficher qui responsable de gere
+        "prompte": data.prompte, #je veux ajouter icii  un script qui va gere redige  une  prompte d assissantce vocal qui respoosabe de reserver et donne  des infome comme dans  genai_client.py mais un autre ficher qui responsable de gere
         "content": content_result,
     }
     
@@ -60,4 +60,4 @@ def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8080)

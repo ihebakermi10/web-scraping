@@ -23,17 +23,17 @@ document.getElementById('myForm').addEventListener('submit', function(e) {
       showError('urlError', 'Veuillez entrer une URL valide');
       isValid = false;
     }
-   // if (prompt.trim() === '') {
-      //showError('promptError', 'Veuillez remplir ce champ');
-    //  isValid = false;
-   // }
+    if (prompt.trim() === '') {
+      showError('promptError', 'Veuillez remplir ce champ');
+      isValid = false;
+    }
     
     if (isValid) {
       const formData = {
         email: email,
         numero: phone,
         url: url,
-       // prompte: prompt
+        prompte: prompt
       };
   
       fetch("http://127.0.0.1:8080/submit", {
