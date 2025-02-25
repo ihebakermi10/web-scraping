@@ -19,7 +19,7 @@ async def send_initial_conversation_item(openai_ws):
     await openai_ws.send(json.dumps(initial_conversation_item))
     await openai_ws.send(json.dumps({"type": "response.create"}))
 
-async def initialize_session(openai_ws, system_message: str, mail: dict ={}):
+async def initialize_session(openai_ws, system_message: str, sms_config: dict ={}):
     session_update = {
         "type": "session.update",
         "session": {
@@ -30,7 +30,7 @@ async def initialize_session(openai_ws, system_message: str, mail: dict ={}):
             "instructions": system_message,
             "modalities": ["text", "audio"],
             "temperature": 1,
-             "tools": [mail]
+             "tools": [sms_config] # si user faire un check de sms intel
         }
     }
     print('Sending session update:', json.dumps(session_update))
