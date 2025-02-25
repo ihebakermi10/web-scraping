@@ -1,5 +1,6 @@
+
 import json
-from assistant.config import SYSTEM_MESSAGE, VOICE
+from .config import VOICE
 
 async def send_initial_conversation_item(openai_ws):
     initial_conversation_item = {
@@ -10,7 +11,7 @@ async def send_initial_conversation_item(openai_ws):
             "content": [
                 {
                     "type": "input_text",
-                    "text": "Salut , presentez vous svp ! "
+                    "text": "Salut, présentez-vous s'il vous plaît !"
                 }
             ]
         }
@@ -18,7 +19,7 @@ async def send_initial_conversation_item(openai_ws):
     await openai_ws.send(json.dumps(initial_conversation_item))
     await openai_ws.send(json.dumps({"type": "response.create"}))
 
-async def initialize_session(openai_ws):
+async def initialize_session(openai_ws, system_message: str, mail: dict ={}):
     session_update = {
         "type": "session.update",
         "session": {
@@ -26,9 +27,10 @@ async def initialize_session(openai_ws):
             "input_audio_format": "g711_ulaw",
             "output_audio_format": "g711_ulaw",
             "voice": VOICE,
-            "instructions": SYSTEM_MESSAGE,
+            "instructions": system_message,
             "modalities": ["text", "audio"],
             "temperature": 1,
+             "tools": [mail]
         }
     }
     print('Sending session update:', json.dumps(session_update))

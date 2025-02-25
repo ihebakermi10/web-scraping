@@ -16,11 +16,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mise à jour du modèle d'entrée sans le champ "prompte"
 class InputData(BaseModel):
     email: str
-    numero: int      
+    numero: str      
     url: str
+    mail_agent: bool = False
 
 def to_str(item):
     """
@@ -45,7 +45,6 @@ async def submit_form(data: InputData):
     print("Données reçues:", data)
     print("URL reçue:", data.url)
     try:
-        # Scraping du site web
         extracted_data = scrape_entire_website(data.url)
         print("Données extraites:", extracted_data)
         print("Types dans extracted_data:", [type(text) for text in extracted_data.values()])
@@ -56,24 +55,22 @@ async def submit_form(data: InputData):
         raise HTTPException(status_code=500, detail="Erreur lors du scraping: " + str(e))
     
     try:
-        # Analyse du contenu du site
         content_result = get_genai_response(all_text)
     except Exception as e:
         print("Erreur lors de l'appel à GenAI:", e)
         raise HTTPException(status_code=500, detail="Erreur lors de l'appel à GenAI: " + str(e))
     
     try:
-        # Génération de la prompt pour l'assistant vocal
         voice_prompt_result = get_voice_assistant_prompt(content_result)
     except Exception as e:
         print("Erreur lors de la génération de la prompt d'assistant vocal:", e)
         raise HTTPException(status_code=500, detail="Erreur lors de la génération de la prompt d'assistant vocal: " + str(e))
     
-    # Création du document à insérer (sans champ "prompte" venant du front)
     document = {
         "url": data.url,
         "email": data.email,
         "numero": data.numero,
+        "mail_agent": data.mail_agent,
         "content": content_result,
         "assistant_prompt": voice_prompt_result
     }

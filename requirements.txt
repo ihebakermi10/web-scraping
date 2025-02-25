@@ -1,26 +1,12 @@
-langchain
-langchain-core
-langchain-groq
 langchain-google-genai
 langchain-openai
-pydantic
 requests
 python-dotenv
 typing-extensions
-pygame
-gTTS
-pyaudio
-faster-whisper
 numpy
 scipy
-# Essayez d'installer CUDA
-# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-flask
 twilio
-scikit-learn
-streamlit
 faiss-cpu
-sentence-transformers
 aiohappyeyeballs==2.4.0
 aiohttp==3.10.6
 aiohttp-retry==2.8.3
@@ -54,3 +40,5 @@ yarl==1.12.1
 langchain
 langchain_community
 beautifulsoup4
+motor
+python-multipart

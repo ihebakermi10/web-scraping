@@ -1,24 +1,26 @@
 import os
 import json
 from typing import Any, Dict
+from dotenv import load_dotenv
 from google import genai
 
 
+load_dotenv()
 
-GOOGLE_API_KEY = "AIzaSyBs_CEsN0b8RnD9Wx6z5qvf_Jl0Kz3NGXk"
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
 def get_genai_response(content: str) -> Dict:
     client = genai.Client(api_key=GOOGLE_API_KEY, http_options={'api_version': 'v1alpha'})
     
     prompt = f"""
-Veuillez analyser et structurer le contenu suivant d’un site web en un objet JSON bien organisé. Assurez-vous d'inclure tous  les informations  pertinente, afin de fournir une analyse exhaustive du site.
+Veuillez analyser et structurer le contenu suivant d’un site web en un objet JSON bien organisé. Assurez-vous d'inclure **tous  les informations  importante**, afin de fournir une analyse exhaustive du site.
 
-Utilisez le contenu complet du site web ci-dessous pour une analyse approfondie :
-    {content}
+Utilisez le contenu complet du site web ci-dessous pour une **analyse approfondie** :
+    **{content}**
 """
 
     response = client.models.generate_content(
-        model='gemini-2.0-flash',
+        model='gemini-2.0-flash-exp',
         contents=prompt,
         config={
             'response_mime_type': 'application/json'

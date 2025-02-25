@@ -20,7 +20,11 @@
 
       <div class="form-group">
         <label for="phone">Numéro de téléphone :</label>
-        <input type="tel" id="phone" required>
+        <select id="phone" required>
+          <option value="+18445951520">+1 844 595 1520</option>
+          <option value="+18146795403">+1 814 679 5403</option>
+          <option value="+15417483110">+1 541 748 3110</option>
+        </select>
         <div class="error-message" id="phoneError"></div>
       </div>
 
@@ -28,6 +32,13 @@
         <label for="url">URL de site web :</label>
         <input type="url" id="url" required>
         <div class="error-message" id="urlError"></div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="mailAgent">
+          Utiliser l'outil mail agent
+        </label>
       </div>
 
       <button type="submit">Soumettre</button>
