@@ -30,7 +30,7 @@ async def initialize_session(openai_ws, system_message: str, sms_config: dict ={
             "instructions": system_message,
             "modalities": ["text", "audio"],
             "temperature": 1,
-             "tools": [sms_config] # si user faire un check de sms intel
+             "tools": [sms_config] 
         }
     }
     print('Sending session update:', json.dumps(session_update))
