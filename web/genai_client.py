@@ -15,7 +15,7 @@ def get_genai_response(content: str) -> Dict:
     prompt = f"""
 Veuillez analyser et structurer le contenu suivant d’un site web en un objet JSON bien organisé. Assurez-vous d'inclure **tous  les informations  importante**, afin de fournir une analyse exhaustive du site.
 
-Utilisez le contenu complet du site web ci-dessous pour une **analyse approfondie** :
+Utilisez le contenu complet du site web ci-dessous pour une **analyse approfondie** :\n
     **{content}**
 """
 

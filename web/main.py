@@ -1,31 +1,37 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from .scraping import scrape_entire_website
-from .genai_client import get_genai_response
-from .voice_prompt import get_voice_assistant_prompt
-from .storage import store_genai_result
+from scraping import scrape_entire_website
+from voice_prompt import get_voice_assistant_prompt
+from storage import store_genai_result
+from dotenv import load_dotenv
+import os
+from pymongo import MongoClient
+
+load_dotenv()
+MONGO_URI = os.getenv("MONGO_URI")
+DB_NAME = os.getenv("DB_NAME", "nehos")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME", "client")
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Autorise toutes les origines
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 class InputData(BaseModel):
-    email: str
     numero: str      
     url: str
-    mail_agent: bool = False
+
+class PersonalityInput(BaseModel):
+    numero: int
 
 def to_str(item):
-    """
-    Convertit récursivement n'importe quel objet en chaîne de caractères.
-    """
+
     if item is None:
         return ""
     if isinstance(item, bytes):
@@ -42,54 +48,73 @@ def to_str(item):
 
 @app.post("/submit")
 async def submit_form(data: InputData):
-    print("Données reçues:", data)
-    print("URL reçue:", data.url)
+
+    print("Received data:", data)
+    print("Received URL:", data.url)
     try:
         extracted_data = scrape_entire_website(data.url)
-        print("Données extraites:", extracted_data)
-        print("Types dans extracted_data:", [type(text) for text in extracted_data.values()])
+        print("Extracted data:", extracted_data)
+        print("Data types in extracted_data:", [type(text) for text in extracted_data.values()])
         all_text = "\n".join(to_str(text) for text in extracted_data.values())
-        print("Texte concaténé:", repr(all_text))
+        print("Concatenated text:", repr(all_text))
     except Exception as e:
-        print("Erreur lors du scraping:", e)
-        raise HTTPException(status_code=500, detail="Erreur lors du scraping: " + str(e))
+        print("Error during scraping:", e)
+        raise HTTPException(status_code=500, detail="Error during scraping: " + str(e))
     
-    try:
-        content_result = get_genai_response(all_text)
-    except Exception as e:
-        print("Erreur lors de l'appel à GenAI:", e)
-        raise HTTPException(status_code=500, detail="Erreur lors de l'appel à GenAI: " + str(e))
-    
-    try:
-        voice_prompt_result = get_voice_assistant_prompt(content_result)
-    except Exception as e:
-        print("Erreur lors de la génération de la prompt d'assistant vocal:", e)
-        raise HTTPException(status_code=500, detail="Erreur lors de la génération de la prompt d'assistant vocal: " + str(e))
-    
+    content_result = all_text
     document = {
         "url": data.url,
-        "email": data.email,
         "numero": data.numero,
-        "mail_agent": data.mail_agent,
         "content": content_result,
-        "assistant_prompt": voice_prompt_result
+        "system_message": ""  
     }
     
     try:
         store_genai_result(document)
     except Exception as e:
-        print("Erreur lors de l'insertion dans la DB:", e)
-        raise HTTPException(status_code=500, detail="Erreur lors de l'insertion dans la DB: " + str(e))
+        print("Error inserting into the database:", e)
+        raise HTTPException(status_code=500, detail="Error inserting into the database: " + str(e))
     
     return {
-        "message": "Données traitées et stockées avec succès",
+        "message": "Data processed and stored successfully",
         "result": content_result,
-        "assistant_prompt": voice_prompt_result
+        "system_message": ""
+    }
+
+@app.post("/personality_maker")
+async def create_personality_maker(data: PersonalityInput):
+
+    client = MongoClient(MONGO_URI)
+    db = client[DB_NAME]
+    collection = db[COLLECTION_NAME]
+    
+    document = collection.find_one({"numero": data.numero})
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found for the provided number")
+    
+    content = document.get("content", "")
+    if not content:
+        raise HTTPException(status_code=400, detail="No content found in the document for the given number")
+    
+    try:
+        system_message = get_voice_assistant_prompt(content)
+    except Exception as e:
+        print("Error generating system message:", e)
+        raise HTTPException(status_code=500, detail="Error generating system message: " + str(e))
+    
+    update_result = collection.update_one({"numero": data.numero}, {"$set": {"system_message": system_message}})
+    if update_result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to update the system_message in the document")
+    
+    return {
+        "message": "System message generated and updated successfully",
+        "system_message": system_message
     }
 
 @app.get("/")
 def read_root():
-    return {"message": "Backend FastAPI en fonctionnement"}
+
+    return {"message": "FastAPI backend is running"}
 
 if __name__ == "__main__":
     import uvicorn

@@ -7,7 +7,6 @@ from .prompt_service import get_prompt_for_number
 router = APIRouter()
 
 global_to_number = None
-global_from_number = None
 
 @router.get("/", response_class=JSONResponse)
 async def index_page():
@@ -15,8 +14,7 @@ async def index_page():
 
 @router.api_route("/incoming-call", methods=["GET", "POST"])
 async def handle_incoming_call(request: Request):
-    global global_to_number
-    global global_from_number  
+    global global_to_number  
     form_data = await request.form()
     from_number = form_data.get("From")
     to_number = form_data.get("To")

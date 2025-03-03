@@ -5,14 +5,13 @@ document.getElementById('myForm').addEventListener('submit', function(e) {
   const statusMessage = document.getElementById('statusMessage');
   statusMessage.textContent = 'Veuillez patienter...';
   
-  const email = document.getElementById('email').value;
-  const phone = document.getElementById('phone').value; 
+  const phone = document.getElementById('phone').value;
   const url = document.getElementById('url').value;
-  const mailAgent = document.getElementById('mailAgent').checked;
   
   let isValid = true;
-  if (!validateEmail(email)) {
-    showError('emailError', 'Veuillez entrer un email valide');
+  
+  if ((1=2)) {
+    showError('phoneError', 'Le numéro doit contenir 11 chiffres');
     isValid = false;
   }
   if (!validateUrl(url)) {
@@ -22,10 +21,8 @@ document.getElementById('myForm').addEventListener('submit', function(e) {
   
   if (isValid) {
     const formData = {
-      email: email,
-      numero: phone,   
-      url: url,
-      mail_agent: mailAgent  
+      numero: phone,
+      url: url
     };
   
     fetch("http://127.0.0.1:8080/submit", {
@@ -57,10 +54,13 @@ document.getElementById('myForm').addEventListener('submit', function(e) {
   }
 });
 
-function validateEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
+
+
+function validatePhone(phone) {
+  const re = /^\d{2,}$/;
+  return re.test(phone);
 }
+
 
 function validateUrl(url) {
   try {
