@@ -4,9 +4,7 @@ from urllib.parse import urljoin, urlparse
 from typing import Optional, Set, Dict
 
 def get_all_links(url: str, base_url: str, visited: Set[str]) -> Set[str]:
-    """
-    Récupère tous les liens internes du site en évitant les doublons.
-    """
+
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
         response = requests.get(url, headers=headers)
@@ -43,10 +41,7 @@ def scrape_website(url: str, visited: Set[str]) -> Optional[str]:
         return None
 
 def scrape_entire_website(start_url: str) -> Dict[str, str]:
-    """
-    Scrape toutes les pages du site à partir de l'URL de départ.
-    Retourne un dictionnaire {url: texte}.
-    """
+  
     to_visit = {start_url}
     visited = set()
     extracted_data = {}

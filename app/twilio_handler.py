@@ -5,8 +5,8 @@ import asyncio
 import websockets
 from fastapi import WebSocket
 from fastapi.websockets import WebSocketDisconnect
-from .config import OPENAI_API_KEY, LOG_EVENT_TYPES, SHOW_TIMING_MATH
-from .openai_session import initialize_session
+from config import OPENAI_API_KEY, LOG_EVENT_TYPES, SHOW_TIMING_MATH
+from openai_session import initialize_session
 
 async def handle_media_stream(websocket: WebSocket, system_message: str):
 

@@ -27,7 +27,6 @@ Utilisez le contenu complet du site web ci-dessous pour une **analyse approfondi
         }
     )
 
-    print("Réponse brute de GenAI:")
     print(response.text)
     
     try:

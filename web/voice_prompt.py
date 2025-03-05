@@ -556,9 +556,8 @@ Votre prompte ici :
         model='gemini-2.0-flash-exp',
         contents=prompt,
     )
-
-    print("Réponse brute du modèle de configuration:")
     print(response.text)
+
     try:
         parsed_result = json.loads(response.text)
     except json.JSONDecodeError as e:

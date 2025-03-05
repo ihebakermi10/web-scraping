@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, WebSocket
 from fastapi.responses import HTMLResponse, JSONResponse
 from twilio.twiml.voice_response import VoiceResponse, Connect
-from .twilio_handler import handle_media_stream
-from .prompt_service import get_prompt_for_number  
+from twilio_handler import handle_media_stream
+from prompt_service import get_prompt_for_number  
 
 router = APIRouter()
 
