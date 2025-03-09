@@ -42,3 +42,5 @@ langchain_community
 beautifulsoup4
 motor
 python-multipart
+aiofiles
+aiosqlite

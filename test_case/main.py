@@ -4,6 +4,7 @@ import asyncio
 import datetime
 import websockets
 import base64
+import uuid
 from fastapi import FastAPI, WebSocket, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.websockets import WebSocketDisconnect
@@ -15,7 +16,7 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPEN_AI_KEY")
 PORT = int(os.getenv("PORT", 5050))
-SYSTEM_MESSAGE = (""" 
+SYSTEM_MESSAGE = """ 
 Act as an expert voice assistant for Toulouse Burger, a handmade burger restaurant in Toulouse.
 Your role is to answer questions and listen to users' needs regarding the restaurant, its menu, services, and offers.
     
@@ -24,7 +25,7 @@ Pre-existing knowledge:
 *   **Restaurant:** Toulouse Burger, a handmade burger restaurant in Toulouse.
 *   ... (complete system text) ...
 If the user asks for something that does not exist, respond with "I don't know."
-""")
+"""
 VOICE = "alloy"
 LOG_EVENT_TYPES = [
     "error", "response.content.done", "rate_limits.updated",
@@ -36,41 +37,68 @@ SHOW_TIMING_MATH = False
 
 app = FastAPI()
 
-# Variables globales pour le numéro de l'appelant, le destinataire et l'ID de l'appel.
+# Variables globales pour la gestion de l'appel
 global_from_number = None
 global_to_number = None
 global_call_id = None
 
-DATABASE_FILENAME = "Database.json"
-db_lock = asyncio.Lock()  # Pour sérialiser les écritures dans la base
+# Fichiers de stockage local
+DATABASE_FILENAME = "Database.json"  # Pour les appels
+USERS_FILENAME = "Uses.json"           # Pour les utilisateurs
 
-# ----- Fonctions utilitaires pour la base de données -----
+# Verrous pour les accès concurrents aux fichiers JSON
+db_lock = asyncio.Lock()      # Pour Database.json
+users_lock = asyncio.Lock()   # Pour Uses.json
+
+# ----- Fonctions utilitaires pour le fichier Database.json -----
 async def load_database():
-    print("Loading database from file...")
+    print("Loading Database.json...")
     if not os.path.exists(DATABASE_FILENAME):
-        print("Database file not found. Creating new database file.")
+        print("Database file not found. Creating new Database.json.")
         async with aiofiles.open(DATABASE_FILENAME, "w") as f:
             await f.write(json.dumps({"users": {}}))
         return {"users": {}}
     async with aiofiles.open(DATABASE_FILENAME, "r") as f:
         content = await f.read()
     if not content.strip():
-        print("Database file is empty. Initializing new database.")
+        print("Database file is empty. Initializing new Database.json.")
         return {"users": {}}
     print("Database loaded successfully.")
     return json.loads(content)
 
 async def save_database(db):
-    print("Saving database to file...")
+    print("Saving Database.json...")
     async with aiofiles.open(DATABASE_FILENAME, "w") as f:
         await f.write(json.dumps(db, indent=4))
     print("Database saved.")
 
+# ----- Fonctions utilitaires pour le fichier Uses.json -----
+async def load_users():
+    print("Loading Uses.json...")
+    if not os.path.exists(USERS_FILENAME):
+        print("Users file not found. Creating new Uses.json.")
+        async with aiofiles.open(USERS_FILENAME, "w") as f:
+            await f.write(json.dumps({"users": {}}))
+        return {"users": {}}
+    async with aiofiles.open(USERS_FILENAME, "r") as f:
+        content = await f.read()
+    if not content.strip():
+        print("Users file is empty. Initializing new Uses.json.")
+        return {"users": {}}
+    print("Users file loaded successfully.")
+    return json.loads(content)
+
+async def save_users(users):
+    print("Saving Uses.json...")
+    async with aiofiles.open(USERS_FILENAME, "w") as f:
+        await f.write(json.dumps(users, indent=4))
+    print("Users file saved.")
+
 # ----- Endpoint pour gérer les appels entrants -----
 @app.api_route("/incoming-call", methods=["GET", "POST"])
 async def handle_incoming_call(request: Request):
-    print("Incoming call received.")
     global global_from_number, global_to_number, global_call_id
+    print("Incoming call received.")
     form_data = await request.form()
     from_number = form_data.get("From")
     to_number = form_data.get("To")
@@ -86,18 +114,47 @@ async def handle_incoming_call(request: Request):
     global_call_id = call_sid
     print(f"Call SID: {call_sid}")
     
-    db = await load_database()
-    if "users" not in db:
-        db["users"] = {}
-    if from_number not in db["users"]:
-        db["users"][from_number] = {}
-        print(f"New user created: {from_number}")
-    if call_sid not in db["users"][from_number]:
-        db["users"][from_number][call_sid] = []
-        print(f"New call created for {from_number} with CallSid: {call_sid}")
-    else:
-        print(f"Call {call_sid} already exists for {from_number}")
-    await save_database(db)
+    # Gestion du dataset des utilisateurs (Uses.json)
+    async with users_lock:
+        users_data = await load_users()
+        if "users" not in users_data:
+            users_data["users"] = {}
+        # Recherche d'un utilisateur existant pour ce numéro
+        user_id = None
+        for uid, user in users_data["users"].items():
+            if user["from_number"] == from_number:
+                user_id = uid
+                break
+        if user_id is None:
+            # Création d'un nouvel identifiant utilisateur
+            user_id = str(uuid.uuid4())
+            users_data["users"][user_id] = {"from_number": from_number}
+            print(f"New user created: {from_number} with id {user_id}")
+        await save_users(users_data)
+    
+    # Enregistrement de l'appel dans Database.json en utilisant l'id utilisateur
+    async with db_lock:
+        db = await load_database()
+        if "users" not in db:
+            db["users"] = {}
+        if user_id not in db["users"]:
+            db["users"][user_id] = {}
+        if call_sid not in db["users"][user_id]:
+            current_dt = datetime.datetime.utcnow()
+            db["users"][user_id][call_sid] = {
+                "from_number": from_number,    # Optionnel, car on a déjà l'id
+                "to_number": to_number,
+                "created_at": current_dt.isoformat(),
+                "call_date": current_dt.date().isoformat(),
+                "call_time": current_dt.time().isoformat(),
+                "ended_at": None,
+                "duration": None,
+                "conversation_log": []
+            }
+            print(f"New call created for user id {user_id} with CallSid: {call_sid}")
+        else:
+            print(f"Call {call_sid} already exists for user id {user_id}")
+        await save_database(db)
     
     host = request.url.hostname
     stream_url = f"wss://{host}/media-stream?from_number={from_number}&call_id={call_sid}"
@@ -110,10 +167,11 @@ async def handle_incoming_call(request: Request):
     print("Returning Twilio response with WebSocket URL for media stream.")
     return HTMLResponse(content=str(response), media_type="application/xml")
 
-# ----- WebSocket pour gérer le flux média et le buffer de conversation -----
+# ----- WebSocket pour gérer le flux média et la conversation -----
 @app.websocket("/media-stream")
 async def handle_media_stream(websocket: WebSocket):
     print("WebSocket connection initiated.")
+    # On récupère from_number et call_id dans les query params ou via des variables globales
     from_number = websocket.query_params.get("from_number") or global_from_number
     call_id = websocket.query_params.get("call_id") or global_call_id
     if not from_number or not call_id:
@@ -133,7 +191,7 @@ async def handle_media_stream(websocket: WebSocket):
     last_assistant_item = None
     mark_queue = []
     response_start_timestamp_twilio = None
-    call_ended = False  # Flag indiquant que l'utilisateur a terminé l'appel
+    call_ended = False  
 
     try:
         print("Connecting to OpenAI WebSocket...")
@@ -181,15 +239,29 @@ async def handle_media_stream(websocket: WebSocket):
                         elif data["event"] == "stop":
                             print("Hangup event received from Twilio. User ended the call.")
                             call_ended = True
-                            print("Saving conversation to database due to hangup event...")
-                            async with db_lock:
-                                db = await load_database()
-                                if "users" not in db:
-                                    db["users"] = {}
-                                if from_number not in db["users"]:
-                                    db["users"][from_number] = {}
-                                db["users"][from_number][call_id] = conversation_buffer
-                                await save_database(db)
+                            async with users_lock:
+                                users_data = await load_users()
+                                user_id = None
+                                for uid, user in users_data["users"].items():
+                                    if user["from_number"] == from_number:
+                                        user_id = uid
+                                        break
+                            if user_id is None:
+                                print("User not found in Uses.json for from_number:", from_number)
+                            else:
+                                async with db_lock:
+                                    db = await load_database()
+                                    if ("users" in db and user_id in db["users"] 
+                                            and call_id in db["users"][user_id]):
+                                        call_record = db["users"][user_id][call_id]
+                                        ended_at = datetime.datetime.utcnow()
+                                        call_record["ended_at"] = ended_at.isoformat()
+                                        created_at = datetime.datetime.fromisoformat(call_record["created_at"])
+                                        duration = (ended_at - created_at).total_seconds()
+                                        call_record["duration"] = duration
+                                        call_record["conversation_log"] = conversation_buffer
+                                        await save_database(db)
+                                        print("Call record updated with end time, duration and conversation log.")
                             print("Conversation saved. Call is ended.")
                             break
                 except WebSocketDisconnect:
@@ -226,6 +298,11 @@ async def handle_media_stream(websocket: WebSocket):
                                 "streamSid": stream_sid,
                                 "media": {"payload": audio_payload}
                             }
+                            conversation_buffer.append({
+                                "speaker": "ai",
+                                "audio": audio_payload,
+                                "timestamp": int(datetime.datetime.utcnow().timestamp() * 1000)
+                            })
                             print("Sending audio chunk to Twilio.")
                             await websocket.send_json(audio_delta)
                             print("Chunk sent to Twilio.")
@@ -239,11 +316,7 @@ async def handle_media_stream(websocket: WebSocket):
                                 last_assistant_item = response["item_id"]
                                 print(f"Response ID updated to: {last_assistant_item}")
                             
-                            conversation_buffer.append({
-                                "speaker": "ai",
-                                "audio": audio_payload,
-                                "timestamp": int(datetime.datetime.utcnow().timestamp() * 1000)
-                            })
+                            
                             
                             await send_mark(websocket, stream_sid)
                         
@@ -312,8 +385,8 @@ async def handle_media_stream(websocket: WebSocket):
                 print("WebSocket closed successfully.")
             except Exception as e:
                 print("Error closing WebSocket:", e)
-        # Note : l'insertion de la conversation dans la base est déjà effectuée lors de la réception de l'événement hangup.
-        
+        # Le log de conversation est sauvegardé lors de l'événement hangup.
+
 # ----- Fonctions pour initialiser la session OpenAI -----
 async def send_initial_conversation_item(openai_ws):
     print("Preparing to send initial conversation item to OpenAI.")
