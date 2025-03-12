@@ -18,7 +18,7 @@ DATABASE_FILENAME = "Database.json"
 
 def load_database():
     if not os.path.exists(DATABASE_FILENAME):
-        print(f"Le fichier {DATABASE_FILENAME} n'existe pas.")
+        print(f"Le fichier {DATABASE_FILENAME} nexiste pas.")
         return {}
     with open(DATABASE_FILENAME, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -43,7 +43,7 @@ def process_conversation(conversation):
         audio_b64 = chunk.get("audio")
         timestamp = chunk.get("timestamp")
         if not audio_b64:
-            print(f"Aucun audio trouvé pour le chunk à {timestamp}")
+            print(f"Aucun audio trouvee pour le chunk a {timestamp}")
             continue
 
         try:
@@ -55,7 +55,7 @@ def process_conversation(conversation):
         try:
             linear_pcm = audioop.ulaw2lin(ulaw_data, 2)
         except Exception as e:
-            print(f"Erreur de conversion ulaw->PCM pour le chunk à {timestamp} : {e}")
+            print(f"Erreur de conversion ulaw->PCM pour le chunk a {timestamp} : {e}")
             continue
 
         segment = AudioSegment(
@@ -120,7 +120,7 @@ async def get_transcription(call_id: str):
 
     user, conversation = extract_call_conversation(call_id)
     if conversation is None:
-        raise HTTPException(status_code=404, detail=f"Call ID {call_id} non trouvé dans la base de données.")
+        raise HTTPException(status_code=404, detail=f"Call ID {call_id} non trouvee.")
     
     combined_audio = process_conversation(conversation)
     output_filename = f"{call_id}.wav"
