@@ -4,7 +4,6 @@ from typing import Dict
 from voice_prompt import get_voice_assistant_prompt
 
 def main():
-    # Exemple de contenu détaillé pour un site (ici, Toulouse Burger)
     sample_content = {
         "website_analysis": {
             "restaurant_name": "Toulouse Burger",
