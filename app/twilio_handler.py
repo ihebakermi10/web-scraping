@@ -8,9 +8,15 @@ from fastapi import WebSocket
 from fastapi.websockets import WebSocketDisconnect
 from config import OPENAI_API_KEY, LOG_EVENT_TYPES, SHOW_TIMING_MATH
 from openai_session import initialize_session
-from endpoints import global_from_number, global_call_id
-from endpoints import users_lock, db_lock, load_users, load_database, save_database
-
+from shared import (
+    users_lock,
+    db_lock,
+    load_users,
+    load_database,
+    save_database,
+    global_from_number,
+    global_call_id,
+)
 
 
 async def handle_media_stream(websocket: WebSocket, system_message: str):
