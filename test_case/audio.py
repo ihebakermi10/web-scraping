@@ -113,7 +113,7 @@ def transcribe_audio_with_gemini(audio_filepath):
 
 def main():
     # Remplacez call_id par celui souhaité
-    call_id = "CAff7aa0949d046879736ecd0fc36d89e3"
+    call_id = "CA576203a84fa6b43d70a444ba67425557"
     user, conversation = extract_call_conversation(call_id)
     if conversation is None:
         print(f"Call ID {call_id} non trouvé dans la base de données.")

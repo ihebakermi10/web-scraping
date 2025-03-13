@@ -55,7 +55,7 @@ def process_conversation(conversation):
         try:
             linear_pcm = audioop.ulaw2lin(ulaw_data, 2)
         except Exception as e:
-            print(f"Erreur de conversion ulaw->PCM pour le chunk a {timestamp} : {e}")
+            print(f"Erreur de conversion ulaw -> PCM pour le chunk a {timestamp} : {e}")
             continue
 
         segment = AudioSegment(
@@ -90,7 +90,7 @@ def transcribe_audio_with_gemini(audio_filepath):
     prompt = (
     "Transcribe the conversation from the provided audio and then generate a **clear and detailed summary** of the user's needs and objectives. "
     "The summary must be written in **fluent and natural French** and should consist of **a maximum of three sentences**. "
-    "Briefly explain **the purpose of the call**, what the user is trying to obtain, and the key information they requested. "
+    "Briefly explain **the purpose of the call** and **the user's main goal in detaill .** "
     "Provide only the summary text, without formatting, introductions, or extra elements. "
     "\n\n### Expected response format (examples):\n"
     "- If the user calls a restaurant to ask about the menu:\n"
