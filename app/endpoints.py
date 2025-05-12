@@ -65,23 +65,22 @@ async def save_users(users):
         await f.write(json.dumps(users, indent=4))
     print("Users file saved.")
 
+
+
 @router.get("/", response_class=JSONResponse)
 async def index_page():
     return {"message": "Twilio Media Stream Server is running!"}
 
-@router.api_route("/incoming-call", methods=["GET", "POST"])
+@router.api_route("/incoming", methods=["GET", "POST"])
 async def handle_incoming_call(request: Request):
     global global_from_number, global_to_number, global_call_id
     print("Incoming call received.")
     form_data = await request.form()
     from_number = form_data.get("From")
     to_number = form_data.get("To")
-    
     print(f"Call details - From: {from_number}, To: {to_number}")
-    
     global_from_number = from_number
     global_to_number = to_number
-    
     call_sid = form_data.get("CallSid")
     if not call_sid:
         call_sid = f"{int(datetime.datetime.utcnow().timestamp())}"
